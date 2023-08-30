@@ -1,1 +1,5 @@
 *.tar.gz
+test*.yml
+debug*.yml
+host.yml
+README.html

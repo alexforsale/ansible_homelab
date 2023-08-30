@@ -1,0 +1,36 @@
+---
+- name: pool management
+  block:
+    - name: get pool facts
+      community.libvirt.virt_pool:
+        command: facts
+      changed_when: False
+
+    - name: define pool
+      community.libvirt.virt_pool:
+        command: define
+        name: "{{ item.name }}"
+        xml: "{{ lookup('template', 'storage-pool.xml.j2') }}"
+      when: "item.name not in ansible_libvirt_pools"
+      loop: "{{ libvirt.pool }}"
+
+    - name: build storage pool if not exists
+      community.libvirt.virt_pool:
+        command: build
+        name: "{{ item.name }}"
+      when: "ansible_libvirt_pools[item.name]['state'] != 'active'"
+      loop: "{{ libvirt.pool }}"
+
+    - name: start the pool
+      community.libvirt.virt_pool:
+        command: create
+        name: "{{ item.name }}"
+      when: "ansible_libvirt_pools[item.name]['state'] != 'active'"
+      loop: "{{ libvirt.pool }}"
+
+    - name: ensure the pool started at boot
+      community.libvirt.virt_pool:
+        autostart: True
+        name: "{{ item.name }}"
+      when: item.autostart
+      loop: "{{ libvirt.pool }}"

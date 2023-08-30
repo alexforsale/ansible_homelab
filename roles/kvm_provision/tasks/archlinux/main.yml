@@ -1,0 +1,30 @@
+- name: archlinux variables
+  include_vars: "archlinux.yml"
+
+- name: packages
+  block:
+    - name: remove iptables
+      community.general.pacman:
+        name: iptables
+        state: absent
+        force: True
+
+    - name: install packages
+      community.general.pacman:
+        name: "{{ host_packages }}"
+        state: present
+  notify: enable and start libvirt
+
+- name: add user to the libvirt group
+  ansible.builtin.user:
+    name: "{{ libvirt.host_username }}"
+    groups: libvirt
+    append: True
+
+- name: update nsswitch.conf
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    backrefs: True
+    regex: "(^hosts:.+dns$)"
+    line: \g<1> {{ nsswitch_hosts|join(' ') }}
+    backup: True

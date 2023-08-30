@@ -1,2 +1,8 @@
 ---
 # handlers file for kvm_provision
+
+- name: enable and start libvirtd
+  ansible.builtin.systemd:
+    name: libvirt
+    state: started
+    enabled: True

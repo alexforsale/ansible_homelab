@@ -1,2 +1,15 @@
 ---
 # tasks file for kvm_provision
+
+- name: archlinux
+  block:
+    - include_tasks: "archlinux/main.yml"
+  when: ansible_os_family | lower == "archlinux"
+  tags: archlinux
+
+- include_tasks: "libvirt_pool.yml"
+  tags: pools
+- include_tasks: "libvirt_net.yml"
+  tags: networks
+- include_tasks: "libvirt_vm.yml"
+  tags: vms

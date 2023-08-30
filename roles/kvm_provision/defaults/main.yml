@@ -1,2 +1,68 @@
 ---
 # defaults file for kvm_provision
+debian_base_image_name: debian-11-genericcloud-amd64.qcow2
+debian_base_image_url: https://cloud.debian.org/images/cloud/bullseye/latest/{{ debian_base_image_name }}
+debian_base_image_sha: sha512:f16512174452ea49e34d302e86bb11b6f821013dde583bf703550998e87819f98c6e411d7737bd53f16c73007f1c039218f9cd40421ec3a6b5b1fe38044018c0
+
+ubuntu_base_image_name: ubuntu-22.04-minimal-cloudimg-amd64.img
+ubuntu_base_image_url: https://cloud-images.ubuntu.com/minimal/releases/jammy/release/{{ ubuntu_base_image_name }}
+ubuntu_base_image_sha: sha256:29ddcb82b96509e69ac1f7dca928c9f82b21958eb3683ab6b45f3095997b0fc7
+
+archlinux_base_image_name: Arch-Linux-x86_64-cloudimg.qcow2
+archlinux_base_image_url: https://geo.mirror.pkgbuild.com/images/latest/{{ archlinux_base_image_name }}
+archlinux_base_image_sha: sha256:d9637c7bb5d4cff874b71c6db31a1563ad25b55d46d4b4a2b8ff6c220e90f40a
+
+# uri: qemu+ssh://alexforsale@tanzania.alexforsale.site/system
+iso_dir: "/var/lib/libvirt/ISO"
+storage_dir: "/var/lib/libvirt/images"
+libvirt:
+  host_username: "{{ lookup('env', 'USER') }}"
+  pool:
+    - name: ansible_iso_dir
+      type: dir
+      path: "{{ iso_dir }}"
+      mode: "0755"
+      owner: 0
+      group: 0
+      autostart: True
+      iso: True
+    - name: default
+      type: dir
+      path: "{{ storage_dir }}"
+      mode: "0755"
+      owner: 0
+      group: 0
+      autostart: True
+      iso: False
+  net:
+    - name: ansible_network
+      forward_mode: nat
+      bridge_name: virt_net1
+      stp: "on"
+      delay: 0
+      ip_address: 10.0.33.254
+      netmask: 255.255.255.0
+      dhcp_start: 10.0.33.100
+      dhcp_end: 10.0.33.200
+      autostart: True
+  vm:
+    - name: vm01
+      arch: 'x86_64'
+      distro: debian
+      vcpus: 1
+      machine: 'pc-q35-8.1'
+      mode: 'host-passthrough'
+      emulator: "/usr/bin/qemu-system-x86_64"
+      default_disk_driver_type: qcow2
+      default_disk_dev: vda
+      default_disk_bus: virtio
+      ram_mb: 1024
+      root_password: test1234
+      network: ansible_network
+      network_type: virtio
+      graphics:
+        - type: "spice"
+      videos:
+        - type: qxl
+      memballoon_model: "virtio"
+      ssh_pub_key: "/home/alexforsale/.ssh/id_rsa.pub"

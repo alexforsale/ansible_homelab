@@ -1,0 +1,99 @@
+---
+- name: vm management
+  block:
+    - name: get vm facts
+      community.libvirt.virt:
+        command: list_vms
+      register: existing_vms
+      changed_when: False
+
+    - name: create vm if not exists
+      block:
+        - name: Download debian base image
+          block:
+            - name: Download debian base image into ISO directory
+              ansible.builtin.get_url:
+                url: "{{ debian_base_image_url }}"
+                dest: "{{ iso_dir }}/{{ debian_base_image_name }}"
+                checksum: "{{ debian_base_image_sha }}"
+              when: item.distro == "debian"
+              loop: "{{ libvirt.vm }}"
+
+            - name: Copy debian base image to libvirt storage directory
+              copy:
+                dest: "{{ storage_dir }}/{{ item.name }}.qcow2"
+                src: "{{ iso_dir }}/{{ debian_base_image_name }}"
+                force: no
+                remote_src: yes
+                mode: 0660
+              register: copy_results
+              when: item.distro == "debian"
+              loop: "{{ libvirt.vm }}"
+
+        - name: Download ubuntu base image
+          block:
+            - name: Download ubuntu base image into ISO directory
+              ansible.builtin.get_url:
+                url: "{{ ubuntu_base_image_url }}"
+                dest: "{{ iso_dir }}/{{ ubuntu_base_image_name }}"
+                checksum: "{{ ubuntu_base_image_sha }}"
+              when: item.distro == "ubuntu"
+              loop: "{{ libvirt.vm }}"
+
+            - name: Copy ubuntu base image to libvirt storage directory
+              copy:
+                dest: "{{ storage_dir }}/{{ item.name }}.qcow2"
+                src: "{{ iso_dir }}/{{ ubuntu_base_image_name }}"
+                force: no
+                remote_src: yes
+                mode: 0660
+              register: copy_results
+              when: item.distro == "ubuntu"
+              loop: "{{ libvirt.vm }}"
+
+        - name: Download archlinux base image
+          block:
+            - name: Download archlinux base image into ISO directory
+              ansible.builtin.get_url:
+                url: "{{ archlinux_base_image_url }}"
+                dest: "{{ iso_dir }}/{{ archlinux_base_image_name }}"
+                checksum: "{{ archlinux_base_image_sha }}"
+              when: item.distro == "archlinux"
+              loop: "{{ libvirt.vm }}"
+
+            - name: Copy archlinux base image to libvirt storage directory
+              copy:
+                dest: "{{ storage_dir }}/{{ item.name }}.qcow2"
+                src: "{{ iso_dir }}/{{ archlinux_base_image_name }}"
+                force: no
+                remote_src: yes
+                mode: 0660
+              register: copy_results
+              when: item.distro == "archlinux"
+              loop: "{{ libvirt.vm }}"
+
+        - name: Configure the image
+          command: |
+            virt-customize -a {{ storage_dir }}/{{ item.name }}.qcow2 \
+            --hostname {{ item.name }} \
+            --root-password password:{{ item.root_password }} \
+            --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
+            --uninstall cloud-init --selinux-relabel
+          when: copy_results is changed
+          loop: "{{ libvirt.vm }}"
+
+        - name: define the vm
+          community.libvirt.virt:
+            command: define
+            xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
+          loop: "{{ libvirt.vm }}"
+
+        - name: Ensure VM is started
+          community.libvirt.virt:
+            name: "{{ item.name }}"
+            state: running
+          register: vm_start_results
+          until: "vm_start_results is success"
+          retries: 15
+          delay: 2
+          loop: "{{ libvirt.vm }}"

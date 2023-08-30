@@ -1,0 +1,12 @@
+---
+host_packages:
+  - dmidecode
+  - libvirt
+  - iptables-nft
+  - openbsd-netcat
+  - qemu-full
+  - guestfs-tools
+  - libvirt-python
+nsswitch_hosts:
+  - libvirt
+  - libvirt_guest

@@ -1,0 +1,66 @@
+<domain type='kvm'>
+  <name>{{ item.name }}</name>
+  <memory unit='MiB'>{{ item.ram_mb }}</memory>
+  <vcpu placement='static'>{{ item.vcpus }}</vcpu>
+  <os>
+    <type arch='{{ item.arch }}' machine='{{ item.machine }}'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <cpu mode='{{ item.mode }}' check='none'/>
+  <devices>
+    <emulator>{{ item.emulator }}</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='{{ item.default_disk_driver_type }}'/>
+      <source file='{{ storage_dir }}/{{ item.name }}.qcow2'/>
+      <target dev='{{ item.default_disk_dev }}' bus='{{ item.default_disk_bus }}'/>
+    </disk>
+{% if item.disks is defined %}
+{% for disk in item.disks %}
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='{{disk.type|default("raw")}}'/>
+      <source file='{{disk.path}}'/>
+      <target dev='vd{{ "bcdefghijklmnopqrstuvwxyz"[loop.index0] }}' bus='virtio'/>
+{% if disk.readonly|default(false) %}
+      <readonly/>
+{% endif %}
+    </disk>
+{% endfor %}
+{% endif %}
+    <interface type='network'>
+      <source network='{{ item.network|default("default") }}'/>
+      <model type='{{ item.network_type }}'/>
+      <mac address='{{item.mac|default("52:54:00:"+lookup('lines', 'echo '+item.name+'| md5sum | sed \'s/\(..\)/\\1:/g\' | cut -b1-8'))}}'/>    </interface>
+    <channel type='unix'>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <channel type='spicevmc'>
+      <target type='virtio' name='com.redhat.spice.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='2'/>
+    </channel>
+    <input type='tablet' bus='usb'>
+    <address type='usb' bus='0' port='1'/>
+    </input>
+    <input type='mouse' bus='ps2'/>
+    <input type='keyboard' bus='ps2'/>
+{% if item.graphics is defined %}
+{% for graphic in item.graphics %}
+    <graphics type='{{ graphic.type }}' autoport='{{ graphic.autoport|default("yes") }}'>
+      <listen type='{{ graphic.listen_type|default("address") }}'/>
+      <image compression='{{ graphic.compression|default("off") }}'/>
+    </graphics>
+{% endfor %}
+{% endif %}
+{% if item.videos is defined %}
+{% for video in item.videos %}
+    <video>
+      <model type='{{ video.type }}' ram='{{ video.ram|default("65536") }}' vram='{{ video.vram|default("65536") }}' vgamem='{{ video.vgamem|default("16384") }}' heads='{{ video.head|default("1") }}' primary='{{video.primary|default("yes") }}'/>
+    </video>
+{% endfor %}
+{% endif %}
+    <memballoon model='{{ item.memballoon_model }}'/>
+  </devices>
+</domain>
