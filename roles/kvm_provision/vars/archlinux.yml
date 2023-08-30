@@ -7,6 +7,8 @@ host_packages:
   - qemu-full
   - guestfs-tools
   - libvirt-python
+  - radvd
+  - swtpm
 nsswitch_hosts:
   - libvirt
   - libvirt_guest
