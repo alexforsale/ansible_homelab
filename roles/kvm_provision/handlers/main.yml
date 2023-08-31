@@ -3,6 +3,6 @@
 
 - name: enable and start libvirtd
   ansible.builtin.systemd:
-    name: libvirt
+    name: libvirtd
     state: started
     enabled: True
