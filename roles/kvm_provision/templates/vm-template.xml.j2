@@ -15,6 +15,11 @@
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <cpu mode='{{ item.mode }}' check='none'/>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+  </clock>
   <devices>
     <emulator>{{ item.emulator }}</emulator>
     <disk type='file' device='disk'>
