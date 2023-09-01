@@ -8,9 +8,9 @@ ubuntu_base_image_name: ubuntu-22.04-minimal-cloudimg-amd64.img
 ubuntu_base_image_url: https://cloud-images.ubuntu.com/minimal/releases/jammy/release/{{ ubuntu_base_image_name }}
 ubuntu_base_image_sha: sha256:29ddcb82b96509e69ac1f7dca928c9f82b21958eb3683ab6b45f3095997b0fc7
 
-archlinux_base_image_name: Arch-Linux-x86_64-cloudimg.qcow2
+archlinux_base_image_name: Arch-Linux-x86_64-basic.qcow2
 archlinux_base_image_url: https://geo.mirror.pkgbuild.com/images/latest/{{ archlinux_base_image_name }}
-archlinux_base_image_sha: sha256:d9637c7bb5d4cff874b71c6db31a1563ad25b55d46d4b4a2b8ff6c220e90f40a
+archlinux_base_image_sha: sha256:e2bc3f7b52d60ae925837a5bde7180bb865914dd775d25090ea231906f141243
 
 # uri: qemu+ssh://alexforsale@tanzania.alexforsale.site/system
 iso_dir: "/var/lib/libvirt/ISO"
