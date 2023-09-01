@@ -72,21 +72,21 @@
               when: item.distro == "archlinux"
               loop: "{{ libvirt.vm }}"
 
-        - name: Configure the image
-          command: |
-            virt-customize -a {{ storage_dir }}/{{ item.name }}.qcow2 \
-            --hostname {{ item.name }} \
-            --root-password password:{{ item.root_password }} \
-            --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
-            {{ virt_customize_extra_args|join(" ") }}
-          when: copy_results is changed
-          loop: "{{ libvirt.vm }}"
+            - name: define the vm
+              community.libvirt.virt:
+                command: define
+                xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
+              loop: "{{ libvirt.vm }}"
 
-        - name: define the vm
-          community.libvirt.virt:
-            command: define
-            xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
-          loop: "{{ libvirt.vm }}"
+            # - name: Configure the image
+            #   command: |
+            #     virt-customize -a {{ storage_dir }}/{{ item.name }}.qcow2 \
+            #     --hostname {{ item.name }} \
+            #     --root-password password:{{ item.root_password }} \
+            #     --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
+            #     {{ virt_customize_extra_args|join(" ") }}
+            #   when: copy_results is changed
+            #   loop: "{{ libvirt.vm }}"
 
         - name: Ensure VM is started
           community.libvirt.virt:
