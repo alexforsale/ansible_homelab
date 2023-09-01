@@ -12,3 +12,6 @@ host_packages:
 nsswitch_hosts:
   - libvirt
   - libvirt_guest
+
+virt_customize_extra_args:
+  - "--no-selinux-relabel"

@@ -78,7 +78,7 @@
             --hostname {{ item.name }} \
             --root-password password:{{ item.root_password }} \
             --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
-            --uninstall cloud-init --selinux-relabel
+            {{ virt_customize_extra_args|join(" ") }}
           when: copy_results is changed
           loop: "{{ libvirt.vm }}"
 
