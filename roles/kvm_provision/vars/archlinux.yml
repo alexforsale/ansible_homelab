@@ -9,9 +9,12 @@ host_packages:
   - libvirt-python
   - radvd
   - swtpm
+  - edk2-ovmf
+  - qemu-base
 nsswitch_hosts:
   - libvirt
   - libvirt_guest
 
-virt_customize_extra_args:
-  - "--no-selinux-relabel"
+# virt_customize_extra_args:
+#   - "--install cloud-init"
+#   - "--no-selinux-relabel"
