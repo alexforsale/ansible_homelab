@@ -1,16 +1,25 @@
 ---
 # defaults file for kvm_provision
-debian_base_image_name: debian-11-genericcloud-amd64.qcow2
-debian_base_image_url: https://cloud.debian.org/images/cloud/bullseye/latest/{{ debian_base_image_name }}
+debian_base_version: 11
+debian_base_codename: bullseye
+debian_base_image_name: debian-{{ debian_base_version }}-genericcloud-amd64.qcow2
+debian_base_image_url: https://cloud.debian.org/images/cloud/{{ debian_base_codename }}/latest/{{ debian_base_image_name }}
 debian_base_image_sha: sha512:f16512174452ea49e34d302e86bb11b6f821013dde583bf703550998e87819f98c6e411d7737bd53f16c73007f1c039218f9cd40421ec3a6b5b1fe38044018c0
 
-ubuntu_base_image_name: ubuntu-22.04-minimal-cloudimg-amd64.img
-ubuntu_base_image_url: https://cloud-images.ubuntu.com/minimal/releases/jammy/release/{{ ubuntu_base_image_name }}
+ubuntu_base_version: 22.04
+ubuntu_base_codename: jammy
+ubuntu_base_image_name: ubuntu-{{ ubuntu_base_version }}-minimal-cloudimg-amd64.img
+ubuntu_base_image_url: https://cloud-images.ubuntu.com/minimal/releases/{{ ubuntu_base_codename }}/release/{{ ubuntu_base_image_name }}
 ubuntu_base_image_sha: sha256:29ddcb82b96509e69ac1f7dca928c9f82b21958eb3683ab6b45f3095997b0fc7
 
 archlinux_base_image_name: Arch-Linux-x86_64-basic.qcow2
 archlinux_base_image_url: https://geo.mirror.pkgbuild.com/images/latest/{{ archlinux_base_image_name }}
 archlinux_base_image_sha: sha256:e2bc3f7b52d60ae925837a5bde7180bb865914dd775d25090ea231906f141243
+
+freebsd_base_version: 13.2-RELEASE
+freebsd_base_image_name: FreeBSD-{{ freebsd_base_version }}-amd64.qcow2
+freebsd_base_image_url: https://download.freebsd.org/releases/VM-IMAGES/{{ freebsd_base_version }}/amd64/Latest/{{ freebsd_base_image_name }}.xz
+freebsd_base_image_sha: sha256:fc003dfddb406f7e3bad2b8f21f393deca5d00db4f606f2a7e3617e4f04229ba
 
 # uri: qemu+ssh://alexforsale@tanzania.alexforsale.site/system
 iso_dir: "/var/lib/libvirt/ISO"

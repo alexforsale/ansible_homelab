@@ -4,7 +4,22 @@
     - name: get network facts
       community.libvirt.virt_net:
         command: facts
+      register: ansible_libvirt_network
       changed_when: False
+
+    - name: remove default network
+      block:
+        - name: stop the default network
+          community.libvirt.virt_net:
+            command: destroy
+            name: default
+          when: "ansible_libvirt_network[default][state] == 'active'"
+
+        - name: undefine the default network
+          community.libvirt.virt_net:
+            command: undefine
+            name: default
+      when: "'default' in ansible_libvirt_network"
 
     - name: define network
       community.libvirt.virt_net:

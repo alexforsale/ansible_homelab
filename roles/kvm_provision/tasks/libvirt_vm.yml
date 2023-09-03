@@ -30,6 +30,25 @@
               when: item.distro == "debian"
               loop: "{{ libvirt.vm }}"
 
+            - name: define the vm
+              community.libvirt.virt:
+                command: define
+                xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
+              loop: "{{ libvirt.vm }}"
+              when: item.distro == "debian"
+
+            - name: Configure the image
+              command: |
+                virt-customize -a {{ storage_dir }}/{{ item.name }}.qcow2 \
+                --hostname {{ item.name }} \
+                --root-password password:{{ item.root_password }} \
+                --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
+                {{ virt_customize_extra_args|join(" ") }}
+              when:
+                - copy_results is changed
+                - item.distro == "debian"
+              loop: "{{ libvirt.vm }}"
+
         - name: Download ubuntu base image
           block:
             - name: Download ubuntu base image into ISO directory
@@ -48,6 +67,23 @@
                 remote_src: yes
                 mode: 0660
               register: copy_results
+              when: item.distro == "ubuntu"
+              loop: "{{ libvirt.vm }}"
+
+            - name: define the vm
+              community.libvirt.virt:
+                command: define
+                xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
+              loop: "{{ libvirt.vm }}"
+              when: item.distro == "ubuntu"
+
+            - name: Configure the image
+              command: |
+                virt-customize -a {{ storage_dir }}/{{ item.name }}.qcow2 \
+                --hostname {{ item.name }} \
+                --root-password password:{{ item.root_password }} \
+                --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
+                {{ virt_customize_extra_args|join(" ") }}
               when: item.distro == "ubuntu"
               loop: "{{ libvirt.vm }}"
 
@@ -77,6 +113,52 @@
                 command: define
                 xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
               loop: "{{ libvirt.vm }}"
+              when: item.distro == "archlinux"
+
+        - name: Download freebsd base image
+          block:
+            - name: stat the archive file
+              ansible.builtin.stat:
+                path: "{{ iso_dir }}//{{ freebsd_base_image_name }}"
+              register: image
+
+            - name: Download freebsd base image into ISO directory
+              ansible.builtin.get_url:
+                url: "{{ freebsd_base_image_url }}"
+                dest: "{{ iso_dir }}/{{ freebsd_base_image_name }}"
+                checksum: "{{ freebsd_base_image_sha }}"
+              when:
+                - item.distro == "freebsd"
+                - not image.stat.exists
+              loop: "{{ libvirt.vm }}"
+
+            - name: extract freebsd xz image
+              ansible.builtin.command:
+                chdir: "{{ iso_dir }}"
+                cmd: "xz -dk {{ iso_dir }}/{{ freebsd_base_image_name }}.xz"
+                creates: "{{ iso_dir }}/{{ freebsd_base_image_name }}"
+              when:
+                - image.stat.exists
+
+            - name: Copy freebsd base image to libvirt storage directory
+              ansible.builtin.copy:
+                dest: "{{ storage_dir }}/{{ item.name }}.qcow2"
+                src: "{{ iso_dir }}/{{ freebsd_base_image_name }}"
+                remote_src: yes
+                force: False
+                mode: 0660
+              register: copy_results
+              when:
+                - item.distro == "freebsd"
+                - image.stat.exists
+              loop: "{{ libvirt.vm }}"
+
+            - name: define the vm
+              community.libvirt.virt:
+                command: define
+                xml: "{{ lookup('template', 'vm-template.xml.j2')}}"
+              loop: "{{ libvirt.vm }}"
+              when: item.distro == "freebsd"
 
             # - name: Configure the image
             #   command: |
@@ -85,7 +167,9 @@
             #     --root-password password:{{ item.root_password }} \
             #     --ssh-inject 'root:file:{{ item.ssh_pub_key }}' \
             #     {{ virt_customize_extra_args|join(" ") }}
-            #   when: copy_results is changed
+            #   when:
+            #     - copy_results is changed
+            #     - item.distro == "freebsd"
             #   loop: "{{ libvirt.vm }}"
 
         - name: Ensure VM is started

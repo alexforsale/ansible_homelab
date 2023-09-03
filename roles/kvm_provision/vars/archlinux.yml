@@ -15,6 +15,7 @@ nsswitch_hosts:
   - libvirt
   - libvirt_guest
 
-# virt_customize_extra_args:
-#   - "--install cloud-init"
-#   - "--no-selinux-relabel"
+virt_customize_extra_args:
+  - "--install cloud-init"
+  - "--selinux-relabel"
+  - "--network"
